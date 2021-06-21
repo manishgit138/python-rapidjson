@@ -89,7 +89,14 @@ jobs:
           - ubuntu-20.04
           - macOS-10.15
           - windows-2019
-
+        arch: 
+          - auto
+          - aarch64
+        exclude:
+          - os: macOS-10.15
+            arch: aarch64
+          - os: windows-2019
+            arch: aarch64
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -100,10 +107,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
+      
+      - uses: docker/setup-qemu-action@v1
+        if:  ${{matrix.arch}} == 'aarch64'
+        name: Set up QEMU
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v1.11.1
         env:
+          CIBW_ARCHS_LINUX: ${{matrix.arch}}
           CIBW_TEST_REQUIRES: "pytest pytest-benchmark pytz"
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_SKIP: "cp2* cp33* cp34* cp35* pp*"
